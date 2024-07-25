@@ -1,0 +1,294 @@
+// ignore_for_file: prefer_const_constructors
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:xplorit/common_widgets/elevated_btn_widget.dart';
+import 'package:xplorit/common_widgets/icon_text_widget.dart';
+import 'package:xplorit/utils/constants/colors.dart';
+import 'package:xplorit/utils/constants/image_strings.dart';
+
+class BookingCard extends StatefulWidget {
+  final String lenderImg;
+  final String lender;
+  final String lenderLocation;
+  final String vehicleImg;
+  final String vehicleName;
+  final String ratingText;
+  final int noOfRating;
+  final Timestamp startDate;
+  final Timestamp endDate;
+  final String statusText;
+  final Color statusFgColor;
+  final Color statusBgColor;
+  final VoidCallback cancelTapCall;
+  //final VoidCallback paymentTapCall;
+
+  BookingCard({
+    Key? key,
+    required this.lenderImg,
+    required this.lender,
+    required this.lenderLocation,
+    required this.vehicleImg,
+    required this.vehicleName,
+    required this.ratingText,
+    required this.noOfRating,
+    required this.startDate,
+    required this.endDate,
+    required this.statusText,
+    required this.statusFgColor,
+    required this.statusBgColor,
+    required this.cancelTapCall,
+    //this.paymentTapCall =() => ,
+  }) : super(key: key);
+
+  @override
+  State<BookingCard> createState() => _BookingCardState();
+}
+
+class _BookingCardState extends State<BookingCard> {
+  String startDate = '';
+  String endDate = '';
+  String dateOnPerDay = '';
+
+  @override
+  void initState() {
+    super.initState();
+    startDate = widget.startDate.toDate().toString().split(' ')[0];
+    endDate = widget.endDate.toDate().toString().split(' ')[0];
+    if (startDate == endDate) {
+      dateOnPerDay = startDate;
+      startDate =
+          '${widget.startDate.toDate().hour.toString().padLeft(2, '0')}:${widget.startDate.toDate().minute.toString().padLeft(2, '0')}';
+      endDate =
+          '${widget.endDate.toDate().hour.toString().padLeft(2, '0')}:${widget.endDate.toDate().minute.toString().padLeft(2, '0')}';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: TColors.secondary,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(100),
+                      child: widget.lenderImg.startsWith('http')
+                          ? Image.network(
+                              widget.lenderImg,
+                              fit: BoxFit.cover,
+                              width: 60,
+                              height: 60,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Center(
+                                  child: Icon(
+                                    Icons.person,
+                                    color: TColors.secondary,
+                                    size: 60,
+                                  ),
+                                );
+                              },
+                            )
+                          : Image.asset(
+                              widget.lenderImg,
+                              fit: BoxFit.cover,
+                              width: 60,
+                              height: 60,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Center(
+                                  child: Icon(
+                                    Icons.person,
+                                    color: TColors.secondary,
+                                    size: 60,
+                                  ),
+                                );
+                              },
+                            ),
+                      // Image.asset(renderImg, scale: renderImgScale).image,
+                    ),
+                    const SizedBox(width: 5),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.lender,
+                          style: Theme.of(context).textTheme.headlineMedium,
+                        ),
+                        Text(
+                          widget.lenderLocation,
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        )
+                      ],
+                    )
+                  ],
+                ),
+                Container(
+                  width: 100,
+                  height: 50,
+                  padding: EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: widget.statusBgColor,
+                  ),
+                  child: Center(
+                    child: Text(
+                      widget.statusText,
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
+                          ?.apply(color: widget.statusFgColor),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.vehicleName,
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 5),
+                    IconTextWidget(
+                      icon: Icons.star,
+                      txt: widget.noOfRating != 0
+                          ? '${widget.ratingText} (${widget.noOfRating} Reviews)'
+                          : widget.ratingText,
+                      colorIcon: Colors.yellow,
+                    ),
+                  ],
+                ),
+                SizedBox(
+                  height: 100,
+                  width: 100,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(15),
+                    child: widget.vehicleImg.startsWith('http')
+                        ? Image.network(
+                            widget.vehicleImg,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Center(
+                                  child: Image.asset(
+                                TImages.car,
+                                fit: BoxFit.cover,
+                              ));
+                            },
+                          )
+                        : Image.asset(
+                            widget.vehicleImg,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Center(
+                                  child: Image.asset(
+                                TImages.car,
+                                fit: BoxFit.cover,
+                              ));
+                            },
+                          ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.calendar_today),
+                    Text(
+                      startDate,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Icon(dateOnPerDay != '' ? Icons.calendar_today : null),
+                    Text(
+                      dateOnPerDay,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    const Icon(Icons.calendar_today),
+                    Text(
+                      endDate,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                if (widget.statusText == 'Pending') ...[
+                  Expanded(
+                      child: SizedBox(
+                    height: 50,
+                    child: ElevatedBTN(
+                      titleBtn: 'Cancel Booking',
+                      onTapCall: widget.cancelTapCall,
+                      btnColor: TColors.accent,
+                    ),
+                  )),
+                ] else if (widget.statusText.startsWith('Cancelled') ||
+                    widget.statusText.startsWith('Booking')) ...[
+                  Expanded(
+                      child: SizedBox(
+                    height: 50,
+                    child: ElevatedBTN(
+                      titleBtn: 'Remove',
+                      onTapCall: widget.cancelTapCall,
+                      btnColor: TColors.grey,
+                      textColor: Colors.red,
+                    ),
+                  )),
+                ] else if (widget.statusText == 'Rented')
+                  Expanded(
+                      child: SizedBox(
+                    height: 50,
+                    child: ElevatedBTN(
+                      titleBtn: 'Return Vehicle',
+                      onTapCall: widget.cancelTapCall,
+                      btnColor: TColors.primary,
+                      textColor: TColors.secondary,
+                    ),
+                  )),
+              ],
+            ),
+            const SizedBox(height: 10),
+            if (widget.statusText == 'Confiremd by Lender')
+              ElevatedBTN(
+                titleBtn: 'Make payment for your resevertion ',
+                onTapCall: () {},
+                btnColor: Colors.green,
+              )
+          ],
+        ),
+      ),
+    );
+  }
+}
